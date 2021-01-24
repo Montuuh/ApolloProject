@@ -15,6 +15,12 @@
     <ClCompile Include="Source\External\PugiXml\src\pugixml.cpp">
       <Filter>External\PugiXml</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Body.cpp" />
+    <ClCompile Include="Source\PerfTimer.cpp" />
+    <ClCompile Include="Source\PhysicsEngine.cpp" />
+    <ClCompile Include="Source\Planet.cpp" />
+    <ClCompile Include="Source\Rocket.cpp" />
+    <ClCompile Include="Source\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Window.h" />
@@ -52,6 +58,14 @@
     <ClInclude Include="Source\Queue.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Animation.h" />
+    <ClInclude Include="Source\Body.h" />
+    <ClInclude Include="Source\PerfTimer.h" />
+    <ClInclude Include="Source\PhysicsEngine.h" />
+    <ClInclude Include="Source\Planet.h" />
+    <ClInclude Include="Source\Rocket.h" />
+    <ClInclude Include="Source\Timer.h" />
+    <ClInclude Include="Source\Vectors.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="External">

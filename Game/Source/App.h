@@ -3,6 +3,8 @@
 
 #include "Module.h"
 #include "List.h"
+#include "PerfTimer.h"
+#include "Timer.h"
 
 #include "PugiXml/src/pugixml.hpp"
 
@@ -13,6 +15,8 @@ class Render;
 class Textures;
 class Audio;
 class Scene;
+class PhysicsEngine;
+//class Rocket;
 
 class App
 {
@@ -74,6 +78,8 @@ public:
 	Textures* tex;
 	Audio* audio;
 	Scene* scene;
+	PhysicsEngine* physicsEngine;
+	//Rocket* rocket;
 
 private:
 
@@ -92,7 +98,21 @@ private:
 	pugi::xml_node configApp;
 
 	uint frames;
-	float dt;
+	Timer deltaTime;
+
+
+	PerfTimer ptimer;
+	uint64 frameCount = 0;
+
+	Timer startupTime;
+	Timer frameTime;
+	Timer lastSecFrameTime;
+	uint32 lastSecFrameCount = 0;
+	uint32 prevLastSecFrameCount = 0;
+	float dt = 0.0f;
+
+	int cappedMs = -1;
+	bool changeMs = false;
 };
 
 extern App* app;
