@@ -54,7 +54,7 @@ void PhysicsEngine::Verlet(Vec2 *pos, Vec2 *v, Vec2 a, float dt)
 
 void PhysicsEngine::ApplyGravity()
 {
-	if (rocket->pos.y > -2100)				// Apply gravity if rocket is in earth atmosphere
+	if (rocket->pos.y > -2000)				// Apply gravity if rocket is in earth atmosphere
 		rocket->velocity += gravityEarth;  
 	else if (rocket->pos.y < -8500)			// Apply gravity if rocket is in moon atmosphere
 		rocket->velocity -= gravityMoon;

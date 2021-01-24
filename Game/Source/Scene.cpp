@@ -35,23 +35,29 @@ bool Scene::Awake()
 // Called before the first frame
 bool Scene::Start()
 {
-	backgroundTex = app->tex->Load("Assets/Textures/background_space.png");  // Background parallax texture
-	winTex = app->tex->Load("Assets/Textures/winText.png");					 // Intro screen texture
-	loseTex = app->tex->Load("Assets/Textures/loseText.png");				 // Lose screen texture
-	introTex = app->tex->Load("Assets/Textures/introText.png");				 // Win screen texture
+	backgroundTex = app->tex->Load("Assets/Textures/background.png");  // Background parallax texture
+	winTex = app->tex->Load("Assets/Textures/win_screen.png");					 // Intro screen texture
+	loseTex = app->tex->Load("Assets/Textures/lose_screen.png");				 // Lose screen texture
+	introTex = app->tex->Load("Assets/Textures/intro_screen.png");				 // Win screen texture
 
-	rocketTex = app->tex->Load("Assets/Textures/rocket3.png");				  // Rocket texture
+	rocketTex = app->tex->Load("Assets/Textures/rocketTest.png");				  // Rocket texture
+	rocketPushTex = app->tex->Load("Assets/Textures/rocketPush.png");			// Rocket push texture
 
-	fullFuelTex = app->tex->Load("Assets/Textures/fullfuel.png");			  // Full fuel texture 
-	threeFuelTex = app->tex->Load("Assets/Textures/threefuel.png");			  // 3 fuel left texture
-	twoFuelTex = app->tex->Load("Assets/Textures/twofuel.png");				  // 2 fuel left texture
-	oneFuelTex = app->tex->Load("Assets/Textures/onefuel.png");				  // 1 fuel left texture
-	emptyFuelTex = app->tex->Load("Assets/Textures/nofuel.png");			  // Empty fuel texture
-	fuelFillerTex = app->tex->Load("Assets/Textures/itemBattery.png");		  // Fuel filler texture
+	fullFuelTex = app->tex->Load("Assets/Textures/full_fuel.png");			  // Full fuel texture 
+	threeFuelTex = app->tex->Load("Assets/Textures/fuel3.png");			  // 3 fuel left texture
+	twoFuelTex = app->tex->Load("Assets/Textures/fuel2.png");				  // 2 fuel left texture
+	oneFuelTex = app->tex->Load("Assets/Textures/fuel1.png");				  // 1 fuel left texture
+	emptyFuelTex = app->tex->Load("Assets/Textures/empty_fuel.png");			  // Empty fuel texture
+	emptyFuelTexBig = app->tex->Load("Assets/Textures/empty_fuel_big.png");
+	fuelFillerTex = app->tex->Load("Assets/Textures/fuel_filler.png");		  // Fuel filler texture
 
 	deadTex = app->tex->Load("Assets/Textures/explode2.png");				  // Dead texture
 
-	app->audio->PlayMusic("Assets/Audio/Music/earth_scene.ogg");
+	fuelFillerFx = app->audio->LoadFx("Assets/Audio/Fx/fuel_filler_fx.wav");
+	deadFx = app->audio->LoadFx("Assets/Audio/Fx/dead_fx.wav");
+	winFx = app->audio->LoadFx("Assets/Audio/Fx/win_fx.wav");
+	moonFx = app->audio->LoadFx("Assets/Audio/Fx/moon_fx.wav");
+	app->audio->PlayMusic("Assets/Audio/Music/intro_screen_music.ogg");
 	
 	app->physicsEngine->rocket = app->physicsEngine->CreateRocket(Vec2(622, 520), 10, Vec2(0,0), 0.0f); // Position, mass, velocity, angle
 
@@ -70,28 +76,7 @@ bool Scene::Update(float dt)
 	if (app->input->GetKey(SDL_SCANCODE_RETURN) == KEY_DOWN && !gameStarted) // If intro screen and enter pressed -> GAME
 	{
 		gameStarted = true;
-	}
-
-	// Water logic and animation
-	{
-		if ((app->physicsEngine->rocket->pos.x <= 384 || app->physicsEngine->rocket->pos.x >= 895) && // X position of the sea
-			app->physicsEngine->rocket->pos.y > 480 &&								                  // Y position of the sea
-			waterAnimCount >= 100)																	  // Counter to make a little water animation
-		{
-			waterAnimCount = 0;
-			if (app->physicsEngine->rocket->velocity.y > 1000)
-			{
-				app->physicsEngine->rocket->velocity.y = 1000;
-			}
-			app->physicsEngine->rocket->velocity.y -= 50;
-			waterAnim = true;
-		}
-		else if (app->physicsEngine->rocket->pos.y <= 480 && waterAnim) //  If the rocket has rised up from the water again, die
-		{
-			app->physicsEngine->rocket->velocity.y = 0;
-			hasDead = true;
-		}
-		waterAnimCount++;
+		app->audio->PlayMusic("Assets/Audio/Music/game_screen_music.ogg");
 	}
 	
 	if (gameStarted == true && !isDead)
@@ -100,9 +85,9 @@ bool Scene::Update(float dt)
 		{
 			// Die at earth condition
 			if (app->physicsEngine->rocket->pos.y > 480 &&
-				app->physicsEngine->rocket->pos.x >= 384 && app->physicsEngine->rocket->pos.x <= 895 &&
 				(app->physicsEngine->rocket->angle > 30 || app->physicsEngine->rocket->angle < -30))
 			{
+				app->audio->PlayFx(deadFx);
 				hasDead = true;
 			}
 
@@ -110,6 +95,7 @@ bool Scene::Update(float dt)
 			if (app->physicsEngine->rocket->pos.y <= -10449 &&
 				app->physicsEngine->rocket->angle < 150 && app->physicsEngine->rocket->angle > -150)
 			{
+				app->audio->PlayFx(deadFx);
 				hasDead = true;
 			}
 		}
@@ -118,7 +104,6 @@ bool Scene::Update(float dt)
 		{
 			// Correct the angle at earth	
 			if (app->physicsEngine->rocket->pos.y >= 480 &&													// Y position of the ground
-				app->physicsEngine->rocket->pos.x >= 384 && app->physicsEngine->rocket->pos.x <= 895 &&     // X position of the ground
 				app->physicsEngine->rocket->angle < 30 && app->physicsEngine->rocket->angle > -30 &&		// Correct the angle between 30º to both sides
 				app->physicsEngine->rocket->angle != 0)														// If angle = 0 is correct.
 			{
@@ -165,7 +150,7 @@ bool Scene::Update(float dt)
 				angleCorrectionAnimCounter++;
 			}
 		}
-
+		
 		// Ground "colliders"
 		{
 			if (app->physicsEngine->rocket->pos.y < -10450) // Moon
@@ -176,8 +161,7 @@ bool Scene::Update(float dt)
 
 			}
 			if (app->physicsEngine->rocket->pos.y > 480 && // Earth
-				!hasDead &&
-				app->physicsEngine->rocket->pos.x >= 384 && app->physicsEngine->rocket->pos.x <= 895) // At the ground, not sea
+				!hasDead)
 			{
 				app->physicsEngine->rocket->pos.y = 480;
 				app->physicsEngine->rocket->velocity.y = 0;
@@ -378,12 +362,12 @@ bool Scene::Update(float dt)
 		}
 
 		//Rocket movement
-		if (app->input->GetKey(SDL_SCANCODE_UP) == KEY_REPEAT && !hasDead && !waterAnim)
+		if (app->input->GetKey(SDL_SCANCODE_W) == KEY_REPEAT && !hasDead /*&& !waterAnim*/)
 			{
 				app->physicsEngine->rocket->AddMomentumAngle(1.075f, -1.1f, app->physicsEngine->rocket->angle);
 				counter++;
 			}
-		if (app->input->GetKey(SDL_SCANCODE_LEFT) == KEY_REPEAT && !hasDead && !waterAnim)
+		if (app->input->GetKey(SDL_SCANCODE_A) == KEY_REPEAT && !hasDead /*&& !waterAnim*/)
 			{
 				app->physicsEngine->rocket->angle -= 0.015f;
 				if (app->physicsEngine->rocket->angle < -180)
@@ -392,7 +376,7 @@ bool Scene::Update(float dt)
 				}
 
 			}
-		if (app->input->GetKey(SDL_SCANCODE_RIGHT) == KEY_REPEAT && !hasDead && !waterAnim)
+		if (app->input->GetKey(SDL_SCANCODE_D) == KEY_REPEAT && !hasDead /*&& !waterAnim*/)
 			{
 				app->physicsEngine->rocket->angle += 0.015f;
 				if (app->physicsEngine->rocket->angle > 180)
@@ -405,19 +389,29 @@ bool Scene::Update(float dt)
 		{
 			if (app->physicsEngine->rocket->pos.y > -3500 && app->physicsEngine->rocket->pos.y < -3380 && // Y coordinate range of collision
 				app->physicsEngine->rocket->pos.x > 280 && app->physicsEngine->rocket->pos.x < 360)       // X coordinate range of collision
-					hasFuelFiller1Taken = true;
+			{
+				app->audio->PlayFx(fuelFillerFx);
+				hasFuelFiller1Taken = true;
+			}
 			
 			if (app->physicsEngine->rocket->pos.y > -5000 && app->physicsEngine->rocket->pos.y < -4880 && // Y coordinate range of collision
 				app->physicsEngine->rocket->pos.x > 480 && app->physicsEngine->rocket->pos.x < 560)       // X coordinate range of collision
-					hasFuelFiller2Taken = true;
-
+			{
+				app->audio->PlayFx(fuelFillerFx);
+				hasFuelFiller2Taken = true;
+			}
 			if (app->physicsEngine->rocket->pos.y > -6500 && app->physicsEngine->rocket->pos.y < -6380 && // Y coordinate range of collision
 				app->physicsEngine->rocket->pos.x > 230 && app->physicsEngine->rocket->pos.x < 310)       // X coordinate range of collision
-					hasFuelFiller3Taken = true;
-
+			{
+				app->audio->PlayFx(fuelFillerFx);
+				hasFuelFiller3Taken = true;
+			}
 			if (app->physicsEngine->rocket->pos.y > -8500 && app->physicsEngine->rocket->pos.y < -8380 && // Y coordinate range of collision
 				app->physicsEngine->rocket->pos.x > 680 && app->physicsEngine->rocket->pos.x < 760)       // X coordinate range of collision
-					hasFuelFiller4Taken = true;
+			{
+				app->audio->PlayFx(fuelFillerFx);
+				hasFuelFiller4Taken = true;
+			}
 		}
 		
 		// Camera movement
@@ -460,8 +454,13 @@ bool Scene::PostUpdate()
 
 		if (!hasWon) 
 		{
-			// Rocket drawing
-			app->render->DrawTexture(rocketTex, app->physicsEngine->rocket->pos.x, app->physicsEngine->rocket->pos.y, 0, 1.0, app->physicsEngine->rocket->angle);
+			// Rocket push animations
+			{
+				if (app->input->GetKey(SDL_SCANCODE_W) == KEY_REPEAT)
+					app->render->DrawTexture(rocketPushTex, app->physicsEngine->rocket->pos.x, app->physicsEngine->rocket->pos.y, 0, 1.0, app->physicsEngine->rocket->angle);
+				else
+					app->render->DrawTexture(rocketTex, app->physicsEngine->rocket->pos.x, app->physicsEngine->rocket->pos.y, 0, 1.0, app->physicsEngine->rocket->angle);
+			}
 			
 			// Fuel drawing UI
 			{
@@ -499,12 +498,16 @@ bool Scene::PostUpdate()
 			{
 				app->render->DrawTexture(winTex, 0, 0);
 				hasWon = true;
+
+				app->audio->PlayFx(winFx);
 			}
 		}
 
 		// Lose screen transition
 		if (isDead) 
 		{
+
+			app->tex->UnLoad(emptyFuelTex);
 			app->physicsEngine->rocket->pos.y = 0;
 			app->render->camera.y = 0;
 			app->render->DrawTexture(loseTex, 0, app->physicsEngine->rocket->pos.y);
@@ -518,7 +521,7 @@ bool Scene::PostUpdate()
 
 			app->tex->UnLoad(rocketTex); // Make the rocket disappear, as it doesn't explode but travels through space indefinitely
 
-			app->render->DrawTexture(emptyFuelTex, -(app->render->camera.x - 600), -(app->render->camera.y - 250)); // Insert a empty fuel texture
+			app->render->DrawTexture(emptyFuelTexBig, app->render->camera.x, app->render->camera.y + 415); // Insert a empty fuel texture
 			
 			deadTransitionCounter++;
 		}
@@ -546,6 +549,12 @@ bool Scene::PostUpdate()
 bool Scene::Restart()
 {
 	Start();
+	app->audio->PlayMusic("Assets/Audio/Music/game_screen_music.ogg");
+	app->render->camera.y = 0;
+	app->physicsEngine->rocket->velocity.y = 0;
+	app->physicsEngine->rocket->pos.x = 622;
+	app->physicsEngine->rocket->pos.y = 461;
+	app->physicsEngine->rocket->angle = 0;
 
 	hasDead = false;
 	fullFuel = false;
@@ -553,17 +562,12 @@ bool Scene::Restart()
 	fuel2 = false;
 	fuel1 = false;
 	emptyFuel = false;
-	waterAnim = false;
-	waterAnimCount = 0;
+
 	angleCorrectionAnimCounter = 0;
 	counter = 0;
 	deadTransitionCounter = 0;
 
-	app->render->camera.y = 0;
-	app->physicsEngine->rocket->velocity.y = 0;
-	app->physicsEngine->rocket->pos.x = 622;
-	app->physicsEngine->rocket->pos.y = 461;
-	app->physicsEngine->rocket-> angle = 0;
+
 
 	gameStarted = true;
 	hasWon = false;
@@ -579,7 +583,7 @@ bool Scene::Restart()
 	fuelFiller3Bool = false;
 	fuelFiller4Bool = false;
 
-	prova = false;
+	/*prova = false;*/
 
 	return true;
 

@@ -7,26 +7,19 @@
 
 class Rocket : public Body
 {
-public:
-
-	Rocket(){}
-	~Rocket();
 
 public:
-	int health;
 	float fuel;
 	Vec2 velocity;
 	Vec2 acceleration;
-	float f;
 	float angle;
-	float limitVelocityUp = -300.0f;
-	float limitVelocityDown = 300.0f;
-	float velX;
-	float velY;
+
+	float maxVel = 300.0f;
+	float velX = 0;
+	float velY = 0;
 public:
 
-	void launchRocket();
-	void refillFuel();
+
 	void AddMomentum(float xV, float yV);
 	void AddMomentumAngle(float xV, float yV, float angleRotation);
 

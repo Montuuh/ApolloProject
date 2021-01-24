@@ -5,118 +5,76 @@
 #include "Defs.h"
 #include "Log.h"
 
-Rocket::~Rocket()
-{
-	//idlAnim.PushBack({ 0, 0, 64, 85 });
-}
-
-void Rocket::launchRocket()
-{
-
-}
-//
-//bool Rocket::Awake()
-//{
-//	LOG("Loading Rocket");
-//	bool ret = true;
-//
-//	return ret;
-//}
-//
-//bool Rocket::Start()
-//{
-//	currentAnimation = &idlAnim;
-//	return true;
-//}
-//
-//
-//bool Rocket::Update()
-//{
-//
-//	return true;
-//}
-//
-//bool Rocket::PostUpdate()
-//{
-//	SDL_Rect rect = currentAnimation->GetCurrentFrame();
-//	return true;
-//}
-
-
-void Rocket::refillFuel()
-{
-
-}
-
 void Rocket::AddMomentum(float vx, float vy)
 {
-	float velocityX = vx / mass;
-	float velocityY = vy / mass;
-	velocity.x += velocityX;
-	velocity.y += velocityY;
+	velX = vx / mass;
+	velY = vy / mass;
+
+	velocity.x += velX;
+	velocity.y += velY;
 
 }
 
 void Rocket::AddMomentumAngle(float vx, float vy, float angleRot)
 {
-	velX = 0;
-	velY = 0;
-
-
-
-	if (angleRot >= 0 && angleRot < 90)
+	// Angle quadrants logic
+	if (angleRot >= 0 && angleRot < 90) // Quadrant between 0º and 90º
 	{
-		if (angleRot != 0)
-		{
-			velX = (vx + angleRot / mass) * 0.003;
-		}
-		else {
+		if (angleRot == 0)
 			velX = 0;
-		}
-		velY = (vy / mass + (-90 + angleRot)) * 0.003;
-
-	}
-	else if (angleRot < 0 && angleRot >= -90)
-	{
-		velX = -((vx - angleRot / mass) * 0.003);
-		velY = -(vy / mass+(90+angleRot))*0.003;
-	}
-	else if (angleRot >= 90 && (angleRot <= 180))
-	{
-		if (angleRot != 180)
-		{
-			velX = (vx + angleRot / mass) * 0.003;
-		}
-		else {
-			velX = 0;
-		}
-		velY = (vy / mass+(-90 + angleRot))*0.003;
-	}
-	else if (angleRot < -90 && angleRot >= -180)
-	{
-		if (angleRot != -180)
-		{
-			velX = -((vx - angleRot / mass) * 0.003);
-		}
 		else
 		{
-			velX = 0;
+			velX = vx + angleRot / mass;
+			velX = velX * 0.01;
 		}
-		velY = -(vy / mass + (90 + angleRot)) * 0.003;
+
+		velY = vy / mass + -90 + angleRot;
+		velY = velY * 0.01;
+
 	}
+	else if (angleRot >= 90 && (angleRot <= 180)) // Quadrant between 90º and 180º
+	{
+		if (angleRot == 180)
+			velX = 0;
+		else
+		{
+			velX = vx + angleRot / mass;
+			velX = velX * 0.01;
+		}
+
+		velY = vy / mass + -90 + angleRot;
+		velY = velY * 0.01;
+	}
+	else if (angleRot >= -180 && angleRot < -90) // Quadrant between -180º(180º) and -90º(270º)
+	{
+		if (angleRot == -180)
+			velX = 0;
+		else
+		{
+			velX = -(vx - angleRot / mass);
+			velX = velX * 0.01;
+		}
+
+		velY = -(vy / mass + 90 + angleRot);
+		velY = velY * 0.01;
+	}
+	else if (angleRot < 0 && angleRot >= -90) // Quadrant between -90º(270º) and 0º(360º)
+	{
+		velX = -(vx - angleRot / mass);
+		velX = velX * 0.01;
+
+		velY = -(vy / mass + 90 + angleRot);
+		velY = velY * 0.01;
+	}
+
 	
 	velocity.x += velX;
-	
-	if (velocity.y > limitVelocityDown)
-	{
-		velocity.y = limitVelocityDown;
-	}else if(velocity.y < limitVelocityUp)
-	{
-		velocity.y = limitVelocityUp;
-	}
-	else {
-		velocity.y += velY;
-	}
-		
+	velocity.y += velY;
+
+	// Limiting velocities
+	if (velocity.y > maxVel)      // Max velocity down
+		velocity.y = maxVel;
+	else if(velocity.y < -maxVel) // Max velocity up
+		velocity.y = -maxVel;
 
 }
